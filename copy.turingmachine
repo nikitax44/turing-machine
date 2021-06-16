@@ -1,0 +1,12 @@
+init: copy
+accept: done
+
+copy,0,_
+copy,0,0,>,>
+
+copy,1,_
+copy,1,1,>,>
+
+copy,_,_
+done,_,_,-,<
+

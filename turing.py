@@ -30,6 +30,8 @@ class turingmachine:
 				if a!=b: # check if this rule fits
 					if a=='*':
 						pass
+					elif b in a:
+						pass
 					else:
 						break
 			else: # rule is ok
@@ -37,17 +39,23 @@ class turingmachine:
 				break
 		else: # rule not found
 			self.state=2
-			raise RuntimeError('invalid state', rule_set, state)
+			raise RuntimeError('invalid state', rule_set, state, self.rule)
 
 		mod=todo.get('mod', [None]*self.lines)
+		realmod=[]
 		motion=todo.get('move', [0]*self.lines)
 		for i in range(self.lines): # edit all of the lines
-			self.data[i].set(mod[i], motion[i])
+			val=mod[i]
+			if val!=None and val.startswith('$'):
+				val=self.data[int(val[1:])].get()
+			realmod.append(val if val!=None else self.data[i].get())
+			self.data[i].set(val)
+		[self.data[i].move(motion[i]) for i in range(self.lines)]
 		self.rule=todo.get('rule', self.rule)
 
 		if self.rule=='done':
 			self.state=1
-		return (self.rule, mod, motion)
+		return (self.rule, mod, realmod, motion)
 
 class line:
 	def __init__(self, data=[], head=0):
@@ -128,7 +136,9 @@ if __name__=='__main__':
 	try:
 		steps=0
 		while not machine.state:
-			machine.step()
+			info=machine.step()
+			if False: # to enable debug set to True
+				print(info)
 			steps+=1
 	except KeyboardInterrupt:
 		print(machine.data, machine.state, machine.rule)
@@ -141,7 +151,7 @@ if __name__=='__main__':
 				print('empty')
 				continue
 			print(str().join([line.data.get(i, ' ') for i in range(min(buf), max(buf)+1)]))
-		print('head:', steps)
+		print('steps:', steps)
 #		print([list(i.data.values()) for i in machine.data])
 #		print(machine.data)
 #	print(machine.data)
