@@ -1,4 +1,4 @@
-import json
+import json_ as json
 
 
 def modify_empty(m):

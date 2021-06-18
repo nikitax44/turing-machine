@@ -25,15 +25,16 @@ class turingmachine:
 
 		for rulea in rule_set:
 			rule=rulea.get('state', ['*']*self.lines)
+			elpos=[]
 			for i in range(self.lines):
 				a, b=rule[i], state[i]
-				if a!=b: # check if this rule fits
+				c=a.find(b)
+				if c==-1:
 					if a=='*':
-						pass
-					elif b in a:
 						pass
 					else:
 						break
+				elpos.append(c)
 			else: # rule is ok
 				todo=rulea
 				break
@@ -41,13 +42,19 @@ class turingmachine:
 			self.state=2
 			raise RuntimeError('invalid state', rule_set, state, self.rule)
 
+#		print(elpos)
 		mod=todo.get('mod', [None]*self.lines)
 		realmod=[]
 		motion=todo.get('move', [0]*self.lines)
 		for i in range(self.lines): # edit all of the lines
 			val=mod[i]
-			if val!=None and val.startswith('$'):
-				val=self.data[int(val[1:])].get()
+			if val!=None:
+				if val.startswith('$'):
+					val=self.data[int(val[1:])].get()
+				elif '@' in val:
+					vals, pos_=val.split('@')
+					assert len(vals)==len(todo.get('state', [' ']*self.lines)[int(pos_)]), 'invalid count of args'
+					val=vals[elpos[int(pos_)]]
 			realmod.append(val if val!=None else self.data[i].get())
 			self.data[i].set(val)
 		[self.data[i].move(motion[i]) for i in range(self.lines)]
@@ -113,7 +120,7 @@ def load_rule(file='rules.json'):
 		raise
 
 	try:
-		return __import__('json').loads(text)
+		return __import__('json_').loads(text)
 	except:
 		try:
 			import textruletojson as tr
